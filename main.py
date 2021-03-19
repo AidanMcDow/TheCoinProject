@@ -1,8 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
-import re
 import tkinter as tk
 from tkinter import *
+from tkinter.ttk import *
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout
 
 htmlprice = ""
 date = 0
@@ -10,10 +11,11 @@ coinname = ""
 coinprice = ""
 
 
-root = tk.Tk()
+root = Tk()
 
-#
+icon = PhotoImage(file = 'logo.png')
 
+root.iconphoto(False, icon)
 #Tkinter window settings
 w = 800
 h = 650
@@ -33,19 +35,25 @@ canvas1.pack()
 month = StringVar(root)
 month.set("January")
 monthchooser = OptionMenu(root, month, "Febuary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
-canvas1.create_window(400, 200, window=monthchooser)
+canvas1.create_window(350, 200, window=monthchooser)
 
 #Year selector
 year = StringVar(root)
 year.set("2013")
 yearchooser = OptionMenu(root, year, "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021")
-canvas1.create_window(600, 200, window=yearchooser)
+canvas1.create_window(550, 200, window=yearchooser)
 
 #day selector
 day = StringVar(root)
 day.set("5")
 daychooser = OptionMenu(root, day, "09", "12")
-canvas1.create_window(200, 200, window=daychooser)
+canvas1.create_window(150, 200, window=daychooser)
+
+#Coin Selector
+crypto = StringVar(root)
+crypto.set("bitcoin")
+cryptochooser = OptionMenu(root, crypto, "ethereum", "xrp", "bitcoincash", "eos", "stellar", "litecoin", "tether", "cardano", "monero", "dash", "iota")
+canvas1.create_window(350, 400, window=cryptochooser)
 
 #Tkinter text inputs
 #date = tk.Entry(root)
@@ -54,11 +62,12 @@ canvas1.create_window(200, 200, window=daychooser)
 #coinname = tk.Entry(root)
 #canvas1.create_window(350, 200, window=coinname)
 
+
 def getSquareRoot():
     x1 = coinprice
 
     label1 = tk.Label(root, text=x1)
-    canvas1.create_window(200, 230, window=label1)
+    canvas1.create_window(350, 450, window=label1)
 
 
 def getPrice():
@@ -74,12 +83,13 @@ def getPrice():
     prices = table.find_all('td', 'cmc-table__cell--sort-by__price')
 
     #The price of the coin in html format (before.get_text)
-    htmlprice = table.find(href=re.compile("currencies/bitcoin/markets/"))
+    htmlprice = table.find(href=re.compile("currencies/" + crypto.get() + "/markets/"))
 
     coinprice = htmlprice.get_text()
     getSquareRoot()
 
     print(year.get() + day.get(), month.get())
+    print(coinprice)
 
 def convertMonth():
     global m
@@ -123,7 +133,7 @@ def convertMonth():
 
 #Tkinter buttons
 button1 = tk.Button(text='Coin Price', command=lambda: [convertMonth(), getPrice()])
-canvas1.create_window(350, 300, window=button1)
+canvas1.create_window(350, 500, window=button1)
 
 
 
