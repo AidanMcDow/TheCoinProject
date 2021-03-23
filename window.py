@@ -1,7 +1,11 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QComboBox, QGroupBox, QVBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QComboBox, QGroupBox, QVBoxLayout, QLabel
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QIcon
 import sys
+from bs4 import BeautifulSoup
+import requests
+import re
+
 
 class App(QWidget):
 
@@ -18,7 +22,7 @@ class App(QWidget):
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon("./venv/include/logo.png"))
         self.setGeometry(self.left, self.top, self.width, self.height)
-        self.createHorizontalLayout()
+        self.horizontalLayout()
         self.verticalLayout()
         windowLayout = QVBoxLayout()
         windowLayout.addWidget(self.horizontalGroupBox)
@@ -31,45 +35,47 @@ class App(QWidget):
         sys.exit(app.exec_())
 
     def verticalLayout(self):
-        self.verticalGroupBox = QGroupBox("Vertical Layout")
+        self.verticalGroupBox = QGroupBox()
         vlay = QVBoxLayout()
-
-        mselect = QComboBox(self)
-        mselect.addItem("Bitcoin")
-        mselect.addItem("Ethereum")
-        mselect.addItem("EOS")
-        mselect.addItem("Doge")
-        mselect.addItem("Litecoin")
-
-        vlay.addWidget(mselect)
-        mselect.resize(100, 40)
-
-        self.verticalGroupBox.setLayout(vlay)
-
-    def createHorizontalLayout(self):
-        self.horizontalGroupBox = QGroupBox("Crypto Time Period")
-        layout = QHBoxLayout()
 
         #Button
         insert = QPushButton("Check", self)
         insert.move(400, 400)
-        insert.clicked.connect(self.onClick)
+        insert.clicked.connect(self.getPrice)
+
+        vlay.addWidget(insert)
+        insert.resize(100, 40)
+
+        self.verticalGroupBox.setLayout(vlay)
+
+    def horizontalLayout(self):
+
+        global mselect
+        global dselect
+        global yselect
+        global cselect
+        global hlay
+
+        coinprice = ""
+
+        self.horizontalGroupBox = QGroupBox("Crypto Time Period")
+        hlay = QHBoxLayout()
 
         #Combobox
-        mselect = QComboBox(self)
-        mselect.addItem("Bitcoin")
-        mselect.addItem("Ethereum")
-        mselect.addItem("EOS")
-        mselect.addItem("Doge")
-        mselect.addItem("Litecoin")
+        cselect = QComboBox(self)
+        cselect.addItem("bitcoin")
+        cselect.addItem("Ethereum")
+        cselect.addItem("EOS")
+        cselect.addItem("Doge")
+        cselect.addItem("Litecoin")
 
-        layout.addWidget(mselect)
-        mselect.resize(100, 40)
+        hlay.addWidget(cselect)
+        cselect.resize(100, 40)
 
 
         dselect = QComboBox(self)
         dselect.addItem("1")
-        dselect.addItem("2")
+        dselect.addItem("02")
         dselect.addItem("3")
         dselect.addItem("4")
         dselect.addItem("5")
@@ -81,7 +87,23 @@ class App(QWidget):
         dselect.addItem("11")
 
         dselect.resize(100, 40)
-        layout.addWidget(dselect)
+        hlay.addWidget(dselect)
+
+        mselect = QComboBox(self)
+        mselect.addItem("1")
+        mselect.addItem("2")
+        mselect.addItem("3")
+        mselect.addItem("4")
+        mselect.addItem("5")
+        mselect.addItem("6")
+        mselect.addItem("07")
+        mselect.addItem("8")
+        mselect.addItem("9")
+        mselect.addItem("10")
+        mselect.addItem("11")
+
+        mselect.resize(100, 40)
+        hlay.addWidget(mselect)
 
         yselect = QComboBox(self)
         yselect.addItem("2021")
@@ -95,13 +117,40 @@ class App(QWidget):
         yselect.addItem("2013")
 
         yselect.resize(100, 40)
-        layout.addWidget(yselect)
+        hlay.addWidget(yselect)
 
-        self.horizontalGroupBox.setLayout(layout)
+        if (coinprice != ""):
+            pricelabel = QLabel(self)
+            pricelabel.setText(coinprice)
+            hlay.addWidget(pricelabel)
+
+        self.horizontalGroupBox.setLayout(hlay)
+        print(yselect.currentText() + dselect.currentText(), mselect.currentText())
 
     @pyqtSlot()
-    def onClick(self):
-        print('Button click!')
+    def getPrice(self):
+        global coinprice
+
+        print(yselect.currentText() + dselect.currentText() + mselect.currentText())
+
+        URL = "https://coinmarketcap.com/historical/" + yselect.currentText() + dselect.currentText() + mselect.currentText() + "/"
+        page = requests.get(URL)
+        soup = BeautifulSoup(page.content, 'html.parser')
+
+        table = soup.find(class_='cmc-main-section')
+
+        prices = table.find_all('td', 'cmc-table__cell--sort-by__price')
+
+        # The price of the coin in html format (before.get_text)
+        htmlprice = table.find(href=re.compile("currencies/" + cselect.currentText() + "/markets/"))
+
+        coinprice = htmlprice.get_text()
+
+        pricelabel = QLabel(self)
+        pricelabel.setText(coinprice)
+        hlay.addWidget(pricelabel)
+
+        print(coinprice)
 
 
 
